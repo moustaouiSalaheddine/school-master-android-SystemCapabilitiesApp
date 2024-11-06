@@ -25,8 +25,8 @@ import android.Manifest;
 public class SystemCapabilitiesActivity extends AppCompatActivity {
     private static final int REQUEST_CALL_PERMISSION = 1;
 
-    EditText phoneNumberEditText, smsPhoneNumberEditText, smsContentEditText, emailAddressEditText, subjectEditText, bodyEditText,contentEditText, locationEditText;
-    Button callButton, smsButton, emailButton, shareButton, mapsButton;
+    EditText phoneNumberEditText, smsPhoneNumberEditText, smsContentEditText, emailAddressEditText, subjectEditText, bodyEditText,contentEditText, locationEditText, urlEditText;
+    Button callButton, smsButton, emailButton, shareButton, mapsButton, browserButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,6 +88,14 @@ public class SystemCapabilitiesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 openLocationInMaps();
+            }
+        });
+        urlEditText=(EditText)findViewById(R.id.urlEditText);
+        browserButton=(Button)findViewById(R.id.browserButton);
+        browserButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openWebBrowser();
             }
         });
     }
@@ -178,15 +186,29 @@ public class SystemCapabilitiesActivity extends AppCompatActivity {
         String address = locationEditText.getText().toString();
         Intent mapsIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + address));
         mapsIntent.setPackage("com.google.android.apps.maps");
-        startActivity(mapsIntent);
 
         if (mapsIntent.resolveActivity(packageManager) != null) {
-            startActivity(Intent.createChooser(mapsIntent, "Share via"));
+            startActivity(mapsIntent);
         }else {
             Toast.makeText(this, "No activity found to handle this action", Toast.LENGTH_SHORT).show();
         }
     }
-
+    private void openWebBrowser() {
+        PackageManager packageManager = getPackageManager();
+        String url = urlEditText.getText().toString();
+        if (url.trim().isEmpty()) {
+            Toast.makeText(this, "Please enter a url", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!url.startsWith("http://") && !url.startsWith("https://"))
+            url = "http://" + url;
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        if (browserIntent.resolveActivity(packageManager) != null) {
+            startActivity(browserIntent);
+        }else {
+            Toast.makeText(this, "No activity found to handle this action", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     private void hideKeyboard(View view) {
         InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
