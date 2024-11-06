@@ -22,8 +22,8 @@ import android.Manifest;
 public class SystemCapabilitiesActivity extends AppCompatActivity {
     private static final int REQUEST_CALL_PERMISSION = 1;
 
-    EditText phoneNumberEditText;
-    Button callButton;
+    EditText phoneNumberEditText, smsPhoneNumberEditText, smsContentEditText;
+    Button callButton, smsButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +41,16 @@ public class SystemCapabilitiesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 makePhoneCall();
+            }
+        });
+
+        smsPhoneNumberEditText=(EditText)findViewById(R.id.smsPhoneNumberEditText);
+        smsContentEditText=(EditText)findViewById(R.id.smsContentEditText);
+        smsButton=(Button)findViewById(R.id.smsButton);
+        smsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendSMS();
             }
         });
     }
@@ -63,8 +73,13 @@ public class SystemCapabilitiesActivity extends AppCompatActivity {
 
     private void initiateCall(String phoneNumber) {
         Intent callIntent = new Intent(Intent.ACTION_CALL);
+        PackageManager packageManager = getPackageManager();
         callIntent.setData(Uri.parse("tel:" + phoneNumber));
-        startActivity(callIntent);
+        if (callIntent.resolveActivity(packageManager) != null) {
+            startActivity(callIntent);
+        } else {
+            Toast.makeText(this, "No activity found to handle this action", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -77,6 +92,25 @@ public class SystemCapabilitiesActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Permission DENIED to make phone calls", Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+    private void sendSMS() {
+        String phoneNumber = smsPhoneNumberEditText.getText().toString();
+        String message = smsContentEditText.getText().toString();
+        PackageManager packageManager = getPackageManager();
+        if (phoneNumber.trim().isEmpty()) {
+            Toast.makeText(this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
+            return;
+        } else if (message.trim().isEmpty()) {
+            Toast.makeText(this, "Please enter a message", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent smsIntent = new Intent(Intent.ACTION_VIEW, Uri.fromParts("sms", phoneNumber, null));
+        smsIntent.putExtra("sms_body", message);
+        if (smsIntent.resolveActivity(packageManager) != null) {
+            startActivity(smsIntent);
+        }else {
+            Toast.makeText(this, "No activity found to handle this action", Toast.LENGTH_SHORT).show();
         }
     }
 }
