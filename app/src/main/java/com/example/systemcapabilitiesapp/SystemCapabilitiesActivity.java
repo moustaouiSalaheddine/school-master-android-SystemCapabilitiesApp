@@ -1,10 +1,13 @@
 package com.example.systemcapabilitiesapp;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -22,8 +25,8 @@ import android.Manifest;
 public class SystemCapabilitiesActivity extends AppCompatActivity {
     private static final int REQUEST_CALL_PERMISSION = 1;
 
-    EditText phoneNumberEditText, smsPhoneNumberEditText, smsContentEditText, emailAddressEditText, subjectEditText, bodyEditText;
-    Button callButton, smsButton, emailButton;
+    EditText phoneNumberEditText, smsPhoneNumberEditText, smsContentEditText, emailAddressEditText, subjectEditText, bodyEditText,contentEditText;
+    Button callButton, smsButton, emailButton, shareButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,7 +37,15 @@ public class SystemCapabilitiesActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        View rootLayout = findViewById(R.id.systemCapabilities); // Replace with the ID of your root layout
 
+        rootLayout.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                hideKeyboard(v);
+                return false;
+            }
+        });
          phoneNumberEditText=(EditText)findViewById(R.id.phoneNumberEditText);
          callButton=(Button)findViewById(R.id.callButton);
         callButton.setOnClickListener(new View.OnClickListener() {
@@ -61,6 +72,14 @@ public class SystemCapabilitiesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 sendEmail();
+            }
+        });
+        contentEditText=(EditText)findViewById(R.id.contentEditText);
+        shareButton=(Button)findViewById(R.id.shareButton);
+        shareButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                shareContent();
             }
         });
     }
@@ -132,6 +151,27 @@ public class SystemCapabilitiesActivity extends AppCompatActivity {
             startActivity(Intent.createChooser(emailIntent, "Choose an Email client"));
         }else {
             Toast.makeText(this, "No activity found to handle this action", Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void shareContent() {
+        PackageManager packageManager = getPackageManager();
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, contentEditText.getText().toString());
+
+        if (shareIntent.resolveActivity(packageManager) != null) {
+            startActivity(Intent.createChooser(shareIntent, "Share via"));
+        }else {
+            Toast.makeText(this, "No activity found to handle this action", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+
+    private void hideKeyboard(View view) {
+        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (inputMethodManager != null) {
+            inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
     }
 }
