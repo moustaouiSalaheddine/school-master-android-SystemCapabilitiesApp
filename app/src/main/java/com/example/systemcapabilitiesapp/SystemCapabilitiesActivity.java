@@ -24,6 +24,7 @@ import android.Manifest;
 
 public class SystemCapabilitiesActivity extends AppCompatActivity {
     private static final int REQUEST_CALL_PERMISSION = 1;
+    private static final int REQUEST_SMS_PERMISSION = 2;
 
     EditText phoneNumberEditText, smsPhoneNumberEditText, smsContentEditText, emailAddressEditText, subjectEditText, bodyEditText,contentEditText, locationEditText, urlEditText;
     Button callButton, smsButton, emailButton, shareButton, mapsButton, browserButton;
@@ -137,12 +138,19 @@ public class SystemCapabilitiesActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Permission DENIED to make phone calls", Toast.LENGTH_SHORT).show();
             }
+        } else if (requestCode == REQUEST_SMS_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, proceed to send SMS
+                sendSMS();
+            } else {
+                Toast.makeText(this, "Permission DENIED to send SMS", Toast.LENGTH_SHORT).show();
+            }
         }
     }
     private void sendSMS() {
         String phoneNumber = smsPhoneNumberEditText.getText().toString();
         String message = smsContentEditText.getText().toString();
-        PackageManager packageManager = getPackageManager();
+
         if (phoneNumber.trim().isEmpty()) {
             Toast.makeText(this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
             return;
@@ -150,11 +158,23 @@ public class SystemCapabilitiesActivity extends AppCompatActivity {
             Toast.makeText(this, "Please enter a message", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            // Request SMS permission
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, REQUEST_SMS_PERMISSION);
+        } else {
+            // Permission granted, proceed to send SMS
+            initiateSMS(phoneNumber, message);
+        }
+    }
+
+    private void initiateSMS(String phoneNumber, String message) {
         Intent smsIntent = new Intent(Intent.ACTION_VIEW, Uri.fromParts("sms", phoneNumber, null));
         smsIntent.putExtra("sms_body", message);
+        PackageManager packageManager = getPackageManager();
         if (smsIntent.resolveActivity(packageManager) != null) {
             startActivity(smsIntent);
-        }else {
+        } else {
             Toast.makeText(this, "No activity found to handle this action", Toast.LENGTH_SHORT).show();
         }
     }
