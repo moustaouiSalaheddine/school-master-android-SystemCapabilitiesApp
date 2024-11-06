@@ -25,8 +25,8 @@ import android.Manifest;
 public class SystemCapabilitiesActivity extends AppCompatActivity {
     private static final int REQUEST_CALL_PERMISSION = 1;
 
-    EditText phoneNumberEditText, smsPhoneNumberEditText, smsContentEditText, emailAddressEditText, subjectEditText, bodyEditText,contentEditText;
-    Button callButton, smsButton, emailButton, shareButton;
+    EditText phoneNumberEditText, smsPhoneNumberEditText, smsContentEditText, emailAddressEditText, subjectEditText, bodyEditText,contentEditText, locationEditText;
+    Button callButton, smsButton, emailButton, shareButton, mapsButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +80,14 @@ public class SystemCapabilitiesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 shareContent();
+            }
+        });
+        locationEditText=(EditText)findViewById(R.id.locationEditText);
+        mapsButton=(Button)findViewById(R.id.mapsButton);
+        mapsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openLocationInMaps();
             }
         });
     }
@@ -165,7 +173,19 @@ public class SystemCapabilitiesActivity extends AppCompatActivity {
             Toast.makeText(this, "No activity found to handle this action", Toast.LENGTH_SHORT).show();
         }
     }
+    private void openLocationInMaps() {
+        PackageManager packageManager = getPackageManager();
+        String address = locationEditText.getText().toString();
+        Intent mapsIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + address));
+        mapsIntent.setPackage("com.google.android.apps.maps");
+        startActivity(mapsIntent);
 
+        if (mapsIntent.resolveActivity(packageManager) != null) {
+            startActivity(Intent.createChooser(mapsIntent, "Share via"));
+        }else {
+            Toast.makeText(this, "No activity found to handle this action", Toast.LENGTH_SHORT).show();
+        }
+    }
 
 
     private void hideKeyboard(View view) {
