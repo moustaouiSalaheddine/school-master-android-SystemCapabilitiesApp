@@ -22,8 +22,8 @@ import android.Manifest;
 public class SystemCapabilitiesActivity extends AppCompatActivity {
     private static final int REQUEST_CALL_PERMISSION = 1;
 
-    EditText phoneNumberEditText, smsPhoneNumberEditText, smsContentEditText;
-    Button callButton, smsButton;
+    EditText phoneNumberEditText, smsPhoneNumberEditText, smsContentEditText, emailAddressEditText, subjectEditText, bodyEditText;
+    Button callButton, smsButton, emailButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,6 +51,16 @@ public class SystemCapabilitiesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 sendSMS();
+            }
+        });
+        emailAddressEditText=(EditText)findViewById(R.id.emailAddressEditText);
+        subjectEditText=(EditText)findViewById(R.id.subjectEditText);
+        bodyEditText=(EditText)findViewById(R.id.bodyEditText);
+        emailButton=(Button)findViewById(R.id.emailButton);
+        emailButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendEmail();
             }
         });
     }
@@ -109,6 +119,17 @@ public class SystemCapabilitiesActivity extends AppCompatActivity {
         smsIntent.putExtra("sms_body", message);
         if (smsIntent.resolveActivity(packageManager) != null) {
             startActivity(smsIntent);
+        }else {
+            Toast.makeText(this, "No activity found to handle this action", Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void sendEmail() {
+        PackageManager packageManager = getPackageManager();
+        Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:" + emailAddressEditText.getText().toString()));
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, subjectEditText.getText().toString());
+        emailIntent.putExtra(Intent.EXTRA_TEXT, bodyEditText.getText().toString());
+        if (emailIntent.resolveActivity(packageManager) != null) {
+            startActivity(Intent.createChooser(emailIntent, "Choose an Email client"));
         }else {
             Toast.makeText(this, "No activity found to handle this action", Toast.LENGTH_SHORT).show();
         }
